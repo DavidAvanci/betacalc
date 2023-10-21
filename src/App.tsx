@@ -20,7 +20,7 @@ import {
   FaPlus,
   FaTrash,
 } from "react-icons/fa";
-import ReactSelect, { createFilter } from "react-select";
+import ReactSelect from "react-select";
 import { codeList } from "./utils/codeList";
 import { calculateCodes } from "./utils/calculateCodes";
 
