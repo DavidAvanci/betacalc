@@ -2,20 +2,21 @@ import { CodeProps } from "../App";
 import { dataObject } from "./codeList";
 
 export const calculateCodes = (codes: CodeProps[]) => {
-  let total: number = 0;
-  let values: number[] = [];
+  let results: CodeProps[] = [];
   codes.forEach((code) => {
-    values.push(dataObject[code.size][2]);
+    results.push({
+      ...code,
+      value: dataObject[code.size][2],
+    });
   });
 
-  values.sort((a, b) => a - b);
+  results.sort((a, b) => b.value! - a.value!);
 
-  values.forEach((value, idx) => {
+  results.forEach((code, idx) => {
     const multiplier = idx === 0 ? 1 : idx === 1 ? 0.7 : 0.5;
 
-    total += value * multiplier;
+    code.multiplier = multiplier;
   });
 
-  console.log("total > ", total);
-  return parseFloat(total.toFixed(2));
+  return results;
 };

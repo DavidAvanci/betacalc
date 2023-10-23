@@ -4,12 +4,15 @@ import {
   Box,
   ButtonAdd,
   ButtonAddGuide,
-  CheckboxStyled,
   CodeList,
   CodeRow,
   Container,
   Content,
   DownloadButton,
+  Modal,
+  ModalBackdrop,
+  ModalHeader,
+  ModalRow,
   SelectionDiv,
   StyledInput,
 } from "./styles";
@@ -33,8 +36,8 @@ interface GuideProps {
 export interface CodeProps {
   code: number;
   name: string;
-  price?: number;
-  main: boolean;
+  value?: number;
+  multiplier?: number;
   size: string;
 }
 
@@ -46,24 +49,11 @@ function App() {
     total: 0,
   });
   const [codeOnSelect, setCodeOnSelect] = useState<CodeProps | null>(null);
-
-  const handleChangeMain = (idx: number) => {
-    setNewGuide((state) => {
-      return {
-        ...state,
-        codes: state?.codes.map((item, index) => {
-          if (index === idx) {
-            return { ...item, main: true };
-          } else {
-            return { ...item, main: false };
-          }
-        }),
-      };
-    });
-  };
+  const [guideToShow, setGuideToShow] = useState<GuideProps | null>(null);
+  const [modalHidden, setModalHidden] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log("length > ", allGuides.length);
+    console.log("allGuides > ", allGuides);
   }, [allGuides]);
 
   return (
@@ -92,7 +82,7 @@ function App() {
               })}
               onChange={(e) => {
                 if (e) {
-                  setCodeOnSelect({ ...codeList[e.idx], main: false });
+                  setCodeOnSelect(codeList[e.idx]);
                 }
               }}
             />
@@ -107,7 +97,6 @@ function App() {
                         ...state?.codes,
                         {
                           ...codeOnSelect,
-                          main: state.codes.length === 0 ? true : false,
                         },
                       ],
                     };
@@ -125,33 +114,17 @@ function App() {
               newGuide.codes.map((code, idx) => {
                 return (
                   <CodeRow>
-                    <div
-                      style={{ display: "flex", gap: 10, alignItems: "center" }}
-                    >
-                      <CheckboxStyled
-                        selected={code.main}
-                        onClick={() => handleChangeMain(idx)}
-                      />
-                      <span
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleChangeMain(idx)}
-                      >
-                        {code.code} - {code.name}
-                      </span>
-                    </div>
+                    <span style={{ cursor: "pointer" }}>
+                      {code.code} - {code.name}
+                    </span>
+
                     <FaTrash
                       style={{ cursor: "pointer" }}
                       color="red"
                       onClick={() => {
-                        const toRemove = newGuide.codes[idx];
-
                         const newCodes = newGuide.codes.filter(
                           (_, idx2) => idx2 !== idx
                         );
-
-                        if (toRemove.main && newCodes.length > 0) {
-                          newCodes[0].main = true;
-                        }
 
                         setNewGuide((state) => {
                           return { ...state, codes: newCodes };
@@ -169,19 +142,36 @@ function App() {
             onClick={() => {
               calculateCodes(newGuide.codes);
               setAllGuides((state) => {
+                const calculated = calculateCodes(newGuide.codes);
                 if (state) {
                   return [
                     ...state,
-                    { ...newGuide, total: calculateCodes(newGuide.codes) },
+                    {
+                      ...newGuide,
+                      codes: calculated,
+                      total: calculated.reduce(
+                        (acc, cur) =>
+                          acc + (cur.value || 0) * (cur.multiplier || 0),
+                        0
+                      ),
+                    },
                   ];
                 } else {
                   return [
-                    { ...newGuide, total: calculateCodes(newGuide.codes) },
+                    {
+                      ...newGuide,
+                      codes: calculated,
+                      total: calculated.reduce(
+                        (acc, cur) =>
+                          acc + (cur.value || 0) * (cur.multiplier || 0),
+                        0
+                      ),
+                    },
                   ];
                 }
               });
               setNewGuide({
-                name: `Guia ${allGuides.length}`,
+                name: `Guia ${allGuides.length + 2}`,
                 codes: [],
                 total: 0,
               });
@@ -193,18 +183,36 @@ function App() {
         <Box>
           <h1>Guias adicionadas</h1>
           <div style={{ height: "100%", overflowY: "auto" }}>
-            {allGuides.map((guide) => {
+            {allGuides.map((guide, idx) => {
               return (
                 <div
+                  onClick={() => {
+                    setGuideToShow(guide);
+                    setModalHidden(false);
+                  }}
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     borderBottom: "1px solid lightgrey",
                     padding: "5px 2px",
+                    cursor: "pointer",
                   }}
                 >
                   <span>{guide.name}</span>
-                  <span>{formatPrice(guide.total!)}</span>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <span>{formatPrice(guide.total!)}</span>
+                    <FaTrash
+                      style={{ cursor: "pointer" }}
+                      color="red"
+                      onClick={() => {
+                        setAllGuides((state) => {
+                          return state.filter((_, idx2) => idx2 !== idx);
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
               );
             })}
@@ -218,6 +226,7 @@ function App() {
             }}
           >
             <span>Total</span>
+
             <span>
               {formatPrice(
                 allGuides.reduce((acc, cur) => acc + (cur.total || 0), 0)
@@ -229,6 +238,56 @@ function App() {
       <DownloadButton>
         <FaDownload size={14} /> Baixar
       </DownloadButton>
+      <div>
+        <ModalBackdrop
+          hidden={modalHidden}
+          onClick={() => {
+            setGuideToShow(null);
+            setModalHidden(true);
+          }}
+        />
+        <Modal hidden={modalHidden}>
+          <h2>{guideToShow?.name}</h2>
+          <ModalHeader>
+            <span>Código - Nome</span>
+            <span>Porte</span>
+            <span>Valor</span>
+          </ModalHeader>
+          {guideToShow?.codes.map((code) => {
+            return (
+              <ModalRow
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  borderBottom: "1px solid lightgrey",
+                  padding: "5px 2px",
+                }}
+              >
+                <span>
+                  {code.code} - {code.name}
+                </span>
+                <span>{code.size}</span>
+                <span>
+                  {formatPrice(code.value || 0)}({(code.multiplier || 0) * 100}
+                  %)
+                </span>
+              </ModalRow>
+            );
+          })}
+          <ModalRow
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              borderBottom: "1px solid lightgrey",
+              padding: "5px 2px",
+            }}
+          >
+            <span>Total</span>
+            <span> </span>
+            <span>{formatPrice(guideToShow?.total || 0)}</span>
+          </ModalRow>
+        </Modal>
+      </div>
     </Container>
   );
 }

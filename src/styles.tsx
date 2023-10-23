@@ -4,8 +4,8 @@ interface ButtonAddProps {
   disabled?: boolean;
 }
 
-interface CheckboxStyledProps {
-  selected?: boolean;
+interface ModalProps {
+  hidden?: boolean;
 }
 
 export const Container = styled.div`
@@ -155,31 +155,83 @@ export const CodeRow = styled.div`
   }
 `;
 
-export const CheckboxStyled = styled.div<CheckboxStyledProps>`
-  position: relative;
-  min-width: 14px;
-  height: 14px;
-  border: 1px solid rgb(167, 167, 167);
-  border-radius: 50%;
-  cursor: pointer;
-
-  &::after {
-    content: "";
-    background-color: #00c2a1;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    opacity: ${({ selected }) => (selected ? 1 : 0)};
-  }
-`;
-
 export const CodeList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
   height: calc(100% - 100px);
   overflow-y: auto;
+`;
+
+export const Modal = styled.div<ModalProps>`
+  position: absolute;
+  width: 80%;
+  height: 50vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 1px 1px 5px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  z-index: 9999;
+
+  display: ${({ hidden }) => (hidden ? "none" : "flex")};
+  flex-direction: column;
+`;
+
+export const ModalBackdrop = styled.div`
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.2);
+  top: 0px;
+  left: 0px;
+  z-index: 9998;
+
+  display: ${({ hidden }) => (hidden ? "none" : "block")};
+`;
+
+export const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid lightgrey;
+  padding: 10px 5px;
+  font-size: 18px;
+  font-weight: 600;
+
+  span {
+    min-width: 10%;
+    text-align: center;
+  }
+
+  span:first-child {
+    flex-grow: 1;
+    text-align: left;
+  }
+
+  span:last-child {
+    text-align: right;
+  }
+`;
+
+export const ModalRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid lightgrey;
+  padding: 5px 2px;
+
+  span {
+    min-width: 10%;
+    text-align: center;
+  }
+
+  span:first-child {
+    flex-grow: 1;
+    text-align: left;
+  }
+
+  span:last-child {
+    text-align: right;
+  }
 `;
