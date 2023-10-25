@@ -166,7 +166,7 @@ export const CodeList = styled.div`
 export const Modal = styled.div<ModalProps>`
   position: absolute;
   width: 80%;
-  height: 50vh;
+  max-height: 80vh;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -178,6 +178,10 @@ export const Modal = styled.div<ModalProps>`
 
   display: ${({ hidden }) => (hidden ? "none" : "flex")};
   flex-direction: column;
+
+  h2 {
+    margin: 0;
+  }
 `;
 
 export const ModalBackdrop = styled.div`
@@ -195,13 +199,12 @@ export const ModalBackdrop = styled.div`
 export const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid lightgrey;
   padding: 10px 5px;
   font-size: 18px;
   font-weight: 600;
 
   span {
-    min-width: 10%;
+    /* min-width: 10%; */
     text-align: center;
   }
 
@@ -215,14 +218,22 @@ export const ModalHeader = styled.div`
   }
 `;
 
+export const ModalBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+`;
+
 export const ModalRow = styled.div`
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid lightgrey;
-  padding: 5px 2px;
+  border: 1px solid lightgrey;
+  border-radius: 8px;
+  padding: 8px;
 
   span {
-    min-width: 10%;
+    /* min-width: 10%; */
     text-align: center;
   }
 
@@ -234,4 +245,30 @@ export const ModalRow = styled.div`
   span:last-child {
     text-align: right;
   }
+`;
+
+export const ValueDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 200px;
+
+  h3 {
+    margin: 0;
+    font-size: 22px;
+  }
+`;
+
+export const SizeSpan = styled.span`
+  width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const NameSpan = styled.span`
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
 `;

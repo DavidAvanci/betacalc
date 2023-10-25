@@ -11,10 +11,14 @@ import {
   DownloadButton,
   Modal,
   ModalBackdrop,
+  ModalBody,
   ModalHeader,
   ModalRow,
+  NameSpan,
   SelectionDiv,
+  SizeSpan,
   StyledInput,
+  ValueDiv,
 } from "./styles";
 import { formatPrice } from "./utils/formatPrice";
 import {
@@ -31,6 +35,8 @@ interface GuideProps {
   name: string;
   codes: CodeProps[];
   total?: number;
+  totalBefore?: number;
+  multiplier: number;
 }
 
 export interface CodeProps {
@@ -47,6 +53,7 @@ function App() {
     name: `Guia ${allGuides.length + 1}`,
     codes: [],
     total: 0,
+    multiplier: 1,
   });
   const [codeOnSelect, setCodeOnSelect] = useState<CodeProps | null>(null);
   const [guideToShow, setGuideToShow] = useState<GuideProps | null>(null);
@@ -71,6 +78,40 @@ function App() {
               })
             }
           />
+          <div style={{ display: "flex", gap: 20 }}>
+            <div>
+              <input
+                type="radio"
+                id="1"
+                value={1}
+                name="multiplier"
+                onChange={(e) => {
+                  setNewGuide({
+                    ...newGuide,
+                    multiplier: parseFloat(e.target.value),
+                  });
+                }}
+                checked={newGuide.multiplier === 1}
+              />
+              <label for="1">Banda de 100%</label>
+            </div>
+            <div>
+              <input
+                type="radio"
+                id="0.97"
+                value={0.97}
+                name="multiplier"
+                checked={newGuide.multiplier === 0.97}
+                onChange={(e) => {
+                  setNewGuide({
+                    ...newGuide,
+                    multiplier: parseFloat(e.target.value),
+                  });
+                }}
+              />
+              <label for="0.97">Banda de 97%</label>
+            </div>
+          </div>
           <SelectionDiv>
             <ReactSelect
               options={codeList.map((item, idx) => {
@@ -140,20 +181,20 @@ function App() {
           <ButtonAddGuide
             disabled={newGuide.codes.length === 0}
             onClick={() => {
-              calculateCodes(newGuide.codes);
               setAllGuides((state) => {
                 const calculated = calculateCodes(newGuide.codes);
+                const total = calculated.reduce(
+                  (acc, cur) => acc + (cur.value || 0) * (cur.multiplier || 0),
+                  0
+                );
                 if (state) {
                   return [
                     ...state,
                     {
                       ...newGuide,
                       codes: calculated,
-                      total: calculated.reduce(
-                        (acc, cur) =>
-                          acc + (cur.value || 0) * (cur.multiplier || 0),
-                        0
-                      ),
+                      total: total * newGuide.multiplier,
+                      totalBefore: total,
                     },
                   ];
                 } else {
@@ -161,11 +202,8 @@ function App() {
                     {
                       ...newGuide,
                       codes: calculated,
-                      total: calculated.reduce(
-                        (acc, cur) =>
-                          acc + (cur.value || 0) * (cur.multiplier || 0),
-                        0
-                      ),
+                      total: total * newGuide.multiplier,
+                      totalBefore: total,
                     },
                   ];
                 }
@@ -174,6 +212,7 @@ function App() {
                 name: `Guia ${allGuides.length + 2}`,
                 codes: [],
                 total: 0,
+                multiplier: 1,
               });
             }}
           >
@@ -206,7 +245,8 @@ function App() {
                     <FaTrash
                       style={{ cursor: "pointer" }}
                       color="red"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setAllGuides((state) => {
                           return state.filter((_, idx2) => idx2 !== idx);
                         });
@@ -247,45 +287,52 @@ function App() {
           }}
         />
         <Modal hidden={modalHidden}>
-          <h2>{guideToShow?.name}</h2>
+          <h2>
+            {guideToShow?.name} (Banda de {guideToShow?.multiplier! * 100}%)
+          </h2>
           <ModalHeader>
             <span>Código - Nome</span>
-            <span>Porte</span>
-            <span>Valor</span>
+            <SizeSpan>Porte</SizeSpan>
+            <span style={{ minWidth: 200 }}>Valor</span>
           </ModalHeader>
-          {guideToShow?.codes.map((code) => {
-            return (
-              <ModalRow
+          <ModalBody>
+            {guideToShow?.codes.map((code) => {
+              return (
+                <ModalRow>
+                  <NameSpan>
+                    {code.code} - {code.name}
+                  </NameSpan>
+                  <SizeSpan>{code.size}</SizeSpan>
+
+                  <ValueDiv>
+                    <div style={{ display: "flex", gap: 5 }}>
+                      <span>{formatPrice(code.value || 0)}</span>
+                      <span>({(code.multiplier || 0) * 100}%)</span>
+                    </div>
+                    <h3>
+                      {formatPrice((code.value || 0) * (code.multiplier || 0))}
+                    </h3>
+                  </ValueDiv>
+                </ModalRow>
+              );
+            })}
+            <ModalRow>
+              <NameSpan>Total</NameSpan>
+              <span
                 style={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  borderBottom: "1px solid lightgrey",
-                  padding: "5px 2px",
+                  alignItems: "center",
+                  marginRight: 10,
                 }}
               >
-                <span>
-                  {code.code} - {code.name}
-                </span>
-                <span>{code.size}</span>
-                <span>
-                  {formatPrice(code.value || 0)}({(code.multiplier || 0) * 100}
-                  %)
-                </span>
-              </ModalRow>
-            );
-          })}
-          <ModalRow
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              borderBottom: "1px solid lightgrey",
-              padding: "5px 2px",
-            }}
-          >
-            <span>Total</span>
-            <span> </span>
-            <span>{formatPrice(guideToShow?.total || 0)}</span>
-          </ModalRow>
+                {formatPrice(guideToShow?.totalBefore || 0)} (
+                {guideToShow?.multiplier * 100}%){" "}
+              </span>
+              <span style={{ fontSize: 22, fontWeight: 600 }}>
+                {formatPrice(guideToShow?.total || 0)}
+              </span>
+            </ModalRow>
+          </ModalBody>
         </Modal>
       </div>
     </Container>
