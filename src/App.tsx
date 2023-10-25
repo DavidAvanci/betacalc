@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { EventHandler, useEffect, useState } from "react";
 import "./App.css";
 import {
   Box,
@@ -93,7 +93,7 @@ function App() {
                 }}
                 checked={newGuide.multiplier === 1}
               />
-              <label for="1">Banda de 100%</label>
+              <label htmlFor="1">Banda de 100%</label>
             </div>
             <div>
               <input
@@ -109,7 +109,7 @@ function App() {
                   });
                 }}
               />
-              <label for="0.97">Banda de 97%</label>
+              <label htmlFor="0.97">Banda de 97%</label>
             </div>
           </div>
           <SelectionDiv>
@@ -245,7 +245,7 @@ function App() {
                     <FaTrash
                       style={{ cursor: "pointer" }}
                       color="red"
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         setAllGuides((state) => {
                           return state.filter((_, idx2) => idx2 !== idx);
@@ -326,7 +326,7 @@ function App() {
                 }}
               >
                 {formatPrice(guideToShow?.totalBefore || 0)} (
-                {guideToShow?.multiplier * 100}%){" "}
+                {(guideToShow?.multiplier || 0) * 100}%){" "}
               </span>
               <span style={{ fontSize: 22, fontWeight: 600 }}>
                 {formatPrice(guideToShow?.total || 0)}
